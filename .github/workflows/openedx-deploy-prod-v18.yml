@@ -1,0 +1,83 @@
+#------------------------------------------------------------------------------
+# written by: mcdaniel
+# date:       sep-2024
+#
+# usage: top-level workflow. Initiated manually from Github Actions console page
+#        Deploys a Tutor-created openedx Docker image to the designated AWS EC2 instance.
+#------------------------------------------------------------------------------
+name: Open edX Deploy v18 Redwood Production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      OPENEDX_CONTAINER_TAG: latest
+      # common settings
+      # --------------------------------------------
+      DEBUG_MODE: false
+      AWS_REGION: us-east-2
+
+      # environment settings
+      # --------------------------------------------
+      ENVIRONMENT_ID: prod
+      ORGANIZATION: ilmcamp
+      OPENEDX_VERSION: v18
+
+
+    # deployment workflow begins here
+    # --------------------------------------------
+    steps:
+      # checkout github repos: this repo, plus, all Gihubs Actions repos in this workflow
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # AWS helper method. creates a session token that's usable by all other
+      # aws-actions. Prevents us from having to explicitly provide authentication credentials
+      # to each aws-actions method individually.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Setup a connection to our AWS Elastic Container Registry so that we can pull
+      # containers that we created with the build workflows in this Cookiecutter.
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ---------------------------------------------------------------------------------
+      # initialize workflow environment variables
+      # ---------------------------------------------------------------------------------
+      - name: Intialize AWS_ECR_URI
+        shell: bash
+        run: |-
+          echo "AWS_ECR_URI=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
+
+      - name: Intialize AWS ECR repo URIs
+        shell: bash
+        run: |-
+          echo "AWS_ECR_REPOSITORY_OPENEDX=${AWS_ECR_URI}/${{ env.ORGANIZATION }}/openedx-${{ env.OPENEDX_VERSION }}:${{ env.OPENEDX_CONTAINER_TAG }}" >> $GITHUB_ENV
+
+      - name: Load environment specific settings (direct)
+        shell: bash
+        run: |-
+          # Pin the instalation ID with the Kubernetes namespace. It needs to be unique and static per instalation.
+          cat ci/tutor-deploy/environments/${{ env.ORGANIZATION }}/${{ env.ENVIRONMENT_ID }}/config.yml >> $GITHUB_ENV
+
+
+      # -----------------------------------------------------------------------
+      # Deploy
+      # -----------------------------------------------------------------------
+      - name: Deploy to AWS EC2 instance
+        uses: ./.github/actions/tutor/ec2/deploy
+        with:
+          environment-id: ${{ env.ENVIRONMENT_ID }}
+          organization: ${{ env.ORGANIZATION }}
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          aws_ecr_repository_openedx: ${{ env.AWS_ECR_REPOSITORY_OPENEDX }}
+

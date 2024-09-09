@@ -1,0 +1,86 @@
+#------------------------------------------------------------------------------
+# written by: mcdaniel
+# date:       sep-2024
+#
+# usage: Top-level workflow. Initiated manually from Github Actions console page.
+#        Builds openedx Docker production container.
+#------------------------------------------------------------------------------
+name: Open edX Build v18 Redwood Production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-south-1
+      ORGANIZATION: ilmcamp
+      ENVIRONMENT_ID: prod
+      BRANCH_NAME: main
+      OPENEDX_VERSION: v18
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+
+      #------------------------------------------------------------------------
+      # install and configure tutor
+      #------------------------------------------------------------------------
+      - name: Initialize environment
+        uses: openedx-actions/tutor-k8s-init@v1
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          tutor-version: "18.1.3"
+
+      #------------------------------------------------------------------------
+      # Add a custom theme here.
+      #------------------------------------------------------------------------
+      - name: Add a custom theme
+        uses: openedx-actions/tutor-plugin-build-openedx-add-theme@v1
+        with:
+          repository: ilmcamp-openedx-theme
+          repository-organization: ilmcamp
+          repository-ref: ${{ env.BRANCH_NAME}}
+          repository-token: ${{ secrets.PAT }}
+
+      #------------------------------------------------------------------------
+      # Add any Python requirements here.
+      # These include:
+      # - generic Python PyPi packages
+      # - Xblocks
+      # - Open edX Plugin(s)
+      # - your own custom repos
+      #
+      # note that `repository-token` is optional and is only needed for
+      # private repositories
+      #------------------------------------------------------------------------
+      # - name: Add the stepwise-edx-plugin
+      #   uses: openedx-actions/tutor-plugin-build-openedx-add-requirement@v1
+      #   with:
+      #     pip-package: stepwise-edx-plugin
+      #     pip-package-version: "14.0.17"
+
+      - name: Dump tutor config
+        uses: openedx-actions/tutor-print-dump@v1
+        with:
+          action: build
+
+      #------------------------------------------------------------------------
+      # Build and upload the Docker container
+      #------------------------------------------------------------------------
+      - name: Build openedx
+        uses: openedx-actions/tutor-plugin-build-openedx@v1
+        with:
+          aws-ecr-repository: ${{ env.ORGANIZATION }}/openedx-${{ env.OPENEDX_VERSION }}-${{ env.ENVIRONMENT_ID}}

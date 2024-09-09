@@ -44,6 +44,13 @@ sudo apt autoremove
 sudo snap install kubectl --channel=1.25/stable --classic
 sudo snap install yq
 
+if [ ! -d "venv" ]; then
+  python3 -m venv venv
+fi
+
+# Activate the virtual environment
+source venv/bin/activate
+
 pip install --upgrade pyyaml
 pip install "tutor[full]"
 

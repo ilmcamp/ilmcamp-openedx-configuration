@@ -1,0 +1,73 @@
+#------------------------------------------------------------------------------
+# written by: mcdaniel
+# date: june-2022
+#
+#------------------------------------------------------------------------------
+name: Deploy Open edX to Kubernetes
+branding:
+  icon: 'cloud'
+  color: 'orange'
+inputs:
+  environment-id:
+    description: 'The Open edX platform environment. Examples: prod, qa, dev'
+    required: true
+  namespace:
+    description: 'The Kubernetes namespace to which the Open edX platform environment will be deployed. Example: openedx-prod'
+    required: true
+  ssh_private_key:
+    description: 'The private SSH key to use for connecting to the Kubernetes cluster.'
+    required: true
+  ssh_host:
+    description: 'The hostname of the Kubernetes cluster.'
+    required: false
+    default: '52.66.115.211'
+  ssh_user:
+    description: 'The username to use for connecting to the Kubernetes cluster.'
+    required: false
+    default: 'ubuntu'
+  openedx_version:
+    description: 'The Open edX platform version. Example: ironwood, juniper, koa'
+    required: false
+    default: 'v18'
+  aws_ecr_repository_openedx:
+    description: 'The AWS ECR repository for the Open edX platform images.'
+    required: false
+    default: 'UNASSIGNED'
+
+runs:
+  using: "composite"
+  steps:
+
+    # note that values like $LMS_HOSTNAME come from this repo
+    # in /ci/tutor-deploy/environments/prod/config.yml
+    - name: Load additional environment specific settings
+      if: ${{ inputs.aws_ecr_repository_openedx != 'UNASSIGNED' }}
+      shell: bash
+      run: |-
+        echo "TUTOR_DOCKER_IMAGE_OPENEDX=${{ inputs.aws_ecr_repository_openedx }}" >> $GITHUB_ENV
+
+    #------------------------------------------------------------------------
+    # V. Deploy Open edX
+    #------------------------------------------------------------------------
+    - name: Deploy Open edX
+      shell: bash
+      run: |-
+        mkdir -p ~/.ssh
+        echo "${{ inputs.ssh_private_key }}" > ~/.ssh/id_rsa
+        chmod 400 ~/.ssh/id_rsa
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} << 'EOF'
+          echo 'SSH connection established'
+          source venv/bin/activate
+          echo 'Python virtual environment activated'
+          ./pull-theme.sh
+          if [ "$inputs.aws_ecr_repository_openedx" != "UNASSIGNED" ]; then
+            echo "setting tutor openedx variable DOCKER_IMAGE_OPENEDX="${{ inputs.aws_ecr_repository_openedx }}"
+            tutor config save --set DOCKER_IMAGE_OPENEDX="${{ inputs.aws_ecr_repository_openedx }}"
+          fi          
+          tutor local restart
+          while pgrep -x "tutor" > /dev/null; do
+            echo "Waiting for 'tutor' process to complete..."
+            sleep 15
+          done
+          echo "'tutor' deployment process has completed."
+        EOF
