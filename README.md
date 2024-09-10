@@ -8,7 +8,10 @@ to update apt and brew packages:
 ```console
 ./update.sh
 ```
-
+to activate python environment
+```console
+source venv/bin/activate
+```
 To set the open edx theme in tutor
 
 ```console
