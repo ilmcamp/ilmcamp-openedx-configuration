@@ -54,8 +54,9 @@ jobs:
       - name: Add Uzbeck language pack
         shell: bash
         run: |-
-          tutor config save --set "ATLAS_REVISION=main" \
-                            --set "ATLAS_REPOSITORY=openedx/openedx-translations"
+          tutor config save --set ATLAS_REVISION="main" \
+                            --set ATLAS_REPOSITORY="openedx/openedx-translations" \
+                            --set ATLAS_OPTIONS="--filter=uz"
 
       #------------------------------------------------------------------------
       # Add a custom theme here.
