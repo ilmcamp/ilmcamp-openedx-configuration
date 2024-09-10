@@ -43,3 +43,6 @@ docker exec ps
 docker exec -it tutor_local-lms-1 /bin/bash
 cat /openedx/edx-platform/lms/envs/production.py
 ```
+
+
+tutor local run lms sh

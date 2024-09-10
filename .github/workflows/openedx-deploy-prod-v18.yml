@@ -63,13 +63,6 @@ jobs:
         run: |-
           echo "AWS_ECR_REPOSITORY_OPENEDX=${AWS_ECR_URI}/${{ env.ORGANIZATION }}/openedx-${{ env.OPENEDX_VERSION }}:${{ env.OPENEDX_CONTAINER_TAG }}" >> $GITHUB_ENV
 
-      - name: Load environment specific settings (direct)
-        shell: bash
-        run: |-
-          # Pin the instalation ID with the Kubernetes namespace. It needs to be unique and static per instalation.
-          cat ci/tutor-deploy/environments/${{ env.ORGANIZATION }}/${{ env.ENVIRONMENT_ID }}/config.yml >> $GITHUB_ENV
-
-
       # -----------------------------------------------------------------------
       # Deploy
       # -----------------------------------------------------------------------

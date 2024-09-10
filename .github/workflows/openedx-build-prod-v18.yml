@@ -45,6 +45,19 @@ jobs:
           tutor-version: "18.1.3"
 
       #------------------------------------------------------------------------
+      # Add Uzbeck language pack
+      # see: https://docs.tutor.edly.io/configuration.html "Getting and customizing Translations"
+      #
+      # as of Sep-2024 uz language pack is only available on the main branch
+      # but not on the named version branch of openedx-translations.
+      #------------------------------------------------------------------------
+      - name: Add Uzbeck language pack
+        shell: bash
+        run: |-
+          tutor config save --set "ATLAS_REVISION=main" \
+                            --set "ATLAS_REPOSITORY=openedx/openedx-translations"
+
+      #------------------------------------------------------------------------
       # Add a custom theme here.
       #------------------------------------------------------------------------
       - name: Add a custom theme
@@ -77,6 +90,96 @@ jobs:
         with:
           action: build
 
+      #------------------------------------------------------------------------
+      # Add UZ language pack using Atlas cli:
+      #   https://github.com/openedx/openedx-translations/
+      #   https://github.com/openedx/openedx-atlas
+      #
+      # Example:
+      #
+      #     $ cd frontend-app-learning/src/i18n/messages
+      #     $ atlas pull --filter=fr_CA,ar,es_419 \
+      #             translations/frontend-app-learning/src/i18n/messages:frontend-app-learning \
+      #             translations/frontend-component-header/src/i18n/messages:frontend-component-header
+      #
+      #     Will result in the following tree:
+      #
+      #       ├── frontend-app-learning
+      #       │   ├── ar.json
+      #       │   ├── es_419.json
+      #       │   └── fr_CA.json
+      #       └── frontend-component-header
+      #           ├── ar.json
+      #           ├── es_419.json
+      #           └── fr_CA.json
+      #
+      #------------------------------------------------------------------------
+      # - name: Install Atlas CLI
+      #   shell: bash
+      #   run: |-
+      #     mkdir -p ~/translations/
+      #     cd ~
+      #     pip install openedx-atlas
+      #     git clone https://github.com/openedx/openedx-translations.git
+      #     cd openedx-translations
+      #     atlas pull --filter=uz \
+      #       translations/AudioXBlock/audio/conf/locale:translations/AudioXBlock \
+      #       translations/DoneXBlock/done/conf/locale:translations/DoneXBlock \
+      #       translations/FeedbackXBlock/feedback/conf/locale:translations/FeedbackXBlock \
+      #       translations/RecommenderXBlock/recommender/conf/locale:translations/RecommenderXBlock \
+      #       translations/completion/completion/conf/locale:translations/completion \
+      #       translations/course-discovery/course_discovery/conf/locale:translations/course-discovery \
+      #       translations/credentials/credentials/conf/locale:translations/credentials \
+      #       translations/credentials-themes/edx_credentials_themes/conf/locale:translations/credentials-themes \
+      #       translations/ecommerce/ecommerce/conf/locale:translations/ecommerce \
+      #       translations/edx-ace/edx_ace/conf/locale:translations/edx-ace \
+      #       translations/edx-bulk-grades/bulk_grades/conf/locale:translations/edx-bulk-grades \
+      #       translations/edx-enterprise/enterprise/conf/locale:translations/edx-enterprise \
+      #       translations/edx-ora2/openassessment/conf/locale:translations/edx-ora2 \
+      #       translations/edx-platform/conf/locale:translations/edx-platform \
+      #       translations/edx-proctoring/edx_proctoring/conf/locale:translations/edx-proctoring \
+      #       translations/frontend-app-account/src/i18n/messages:translations/frontend-app-account \
+      #       translations/frontend-app-admin-portal/src/i18n/messages:translations/frontend-app-admin-portal \
+      #       translations/frontend-app-authn/src/i18n/messages:translations/frontend-app-authn \
+      #       translations/frontend-app-communications/src/i18n/messages:translations/frontend-app-communications \
+      #       translations/frontend-app-course-authoring/src/i18n/messages:translations/frontend-app-course-authoring \
+      #       translations/frontend-app-discussions/src/i18n/messages:translations/frontend-app-discussions \
+      #       translations/frontend-app-ecommerce/src/i18n/messages:translations/frontend-app-ecommerce \
+      #       translations/frontend-app-enterprise-public-catalog/src/i18n/messages:translations/frontend-app-enterprise-public-catalog \
+      #       translations/frontend-app-gradebook/src/i18n/messages:translations/frontend-app-gradebook \
+      #       translations/frontend-app-learner-dashboard/src/i18n/messages:translations/frontend-app-learner-dashboard \
+      #       translations/frontend-app-learner-portal-enterprise/src/i18n/messages:translations/frontend-app-learner-portal-enterprise \
+      #       translations/frontend-app-learner-record/src/i18n/messages:translations/frontend-app-learner-record \
+      #       translations/frontend-app-learning/src/i18n/messages:translations/frontend-app-learning \
+      #       translations/frontend-app-library-authoring/src/i18n/messages:translations/frontend-app-library-authoring \
+      #       translations/frontend-app-ora-grading/src/i18n/messages:translations/frontend-app-ora-grading \
+      #       translations/frontend-app-payment/src/i18n/messages:translations/frontend-app-payment \
+      #       translations/frontend-app-profile/src/i18n/messages:translations/frontend-app-profile \
+      #       translations/frontend-app-program-console/src/i18n/messages:translations/frontend-app-program-console \
+      #       translations/frontend-app-publisher:translations/frontend-app-publisher \
+      #       translations/frontend-app-support-tools/src/i18n/messages:translations/frontend-app-support-tools \
+      #       translations/frontend-component-footer/src/i18n/messages:translations/frontend-component-footer \
+      #       translations/frontend-component-header/src/i18n/messages:translations/frontend-component-header \
+      #       translations/frontend-enterprise/i18n:translations/frontend-enterprise \
+      #       translations/frontend-lib-special-exams/src/i18n/messages:translations/frontend-lib-special-exams \
+      #       translations/frontend-platform/src/i18n/messages:translations/frontend-platform \
+      #       translations/openedx-app-android/i18n/src/main/res:translations/openedx-app-android \
+      #       translations/openedx-app-ios/I18N/I18N:translations/openedx-app-ios \
+      #       translations/paragon/src/i18n:translations/paragon \
+      #       translations/platform-plugin-aspects/platform_plugin_aspects/conf/locale:translations/platform-plugin-aspects \
+      #       translations/studio-frontend/src/:translations/studio-frontend \
+      #       translations/tutor-contrib-aspects:translations/tutor-contrib-aspects \
+      #       translations/xblock-drag-and-drop-v2/drag_and_drop_v2/conf/locale:translations/xblock-drag-and-drop-v2 \
+      #       translations/xblock-free-text-response/freetextresponse/conf/locale:translations/xblock-free-text-response \
+      #       translations/xblock-google-drive/google_drive/conf/locale:translations/xblock-google-drive \
+      #       translations/xblock-image-explorer/image_explorer/conf/locale:translations/xblock-image-explorer \
+      #       translations/xblock-image-modal/imagemodal/conf/locale:translations/xblock-image-modal \
+      #       translations/xblock-lti-consumer/lti_consumer/conf/locale:translations/xblock-lti-consumer \
+      #       translations/xblock-qualtrics-survey/qualtricssurvey/conf/locale:translations/xblock-qualtrics-survey \
+      #       translations/xblock-sql-grader/sql_grader/conf/locale:translations/xblock-sql-grader \
+      #       translations/xblock-submit-and-comparesubmit_and_compare/conf/locale/:translations/xblock-submit-and-compare \
+
+  
       #------------------------------------------------------------------------
       # Build and upload the Docker container
       #------------------------------------------------------------------------

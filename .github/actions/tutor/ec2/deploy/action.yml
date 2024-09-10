@@ -59,11 +59,11 @@ runs:
           echo 'SSH connection established'
           source venv/bin/activate
           echo 'Python virtual environment activated'
-          ./pull-theme.sh
           if [ "$inputs.aws_ecr_repository_openedx" != "UNASSIGNED" ]; then
             echo "setting tutor openedx variable DOCKER_IMAGE_OPENEDX="${{ inputs.aws_ecr_repository_openedx }}"
             tutor config save --set DOCKER_IMAGE_OPENEDX="${{ inputs.aws_ecr_repository_openedx }}"
           fi          
+          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 194722410770.dkr.ecr.ap-south-1.amazonaws.com
           tutor local restart
           while pgrep -x "tutor" > /dev/null; do
             echo "Waiting for 'tutor' process to complete..."
