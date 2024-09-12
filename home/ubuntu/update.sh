@@ -3,7 +3,7 @@
 # written by: Lawrence McDaniel
 #             https://lawrencemcdaniel.com
 #
-# date:       aug-2022
+# date:       sep-2024
 #
 # usage: update all installed software.
 #--------------------------------------------------------

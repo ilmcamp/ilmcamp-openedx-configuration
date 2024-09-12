@@ -3,7 +3,7 @@
 # written by: Lawrence McDaniel
 #             https://lawrencemcdaniel.com
 #
-# date:       june-2022
+# date:       sep-2024
 #
 # usage: run this on your EC2 Ubuntu bastion instance
 #        to install software packages that are required for use

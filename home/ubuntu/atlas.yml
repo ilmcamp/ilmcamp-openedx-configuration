@@ -1,6 +1,0 @@
-pull:
-  revision: main
-  directory: translations
-  repository: openedx/openedx-translations
-  filter: uz
-  expand_glob: 1
