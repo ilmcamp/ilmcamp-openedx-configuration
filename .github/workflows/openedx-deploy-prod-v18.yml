@@ -32,7 +32,7 @@ jobs:
     steps:
       # checkout github repos: this repo, plus, all Gihubs Actions repos in this workflow
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # AWS helper method. creates a session token that's usable by all other
       # aws-actions. Prevents us from having to explicitly provide authentication credentials
